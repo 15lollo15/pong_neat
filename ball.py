@@ -59,6 +59,7 @@ class Ball(pg.sprite.Sprite):
             self.is_dead = True
             self.paddle.kill()
             self.distance = math.fabs(self.rect.centery - self.paddle.rect.centerx)
+            #print(self.count_bounce, self.distance)
             self.kill()
 
         if self.direction.magnitude() > 0:

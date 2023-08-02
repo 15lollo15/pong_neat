@@ -1,17 +1,27 @@
 from random import Random
 
 import pygame as pg
+from neat_py.population import Population
+from neat_py.neat_settings import Settings
+
 import settings
 from ball import Ball
+from neural_network import NeuralNetwork
 from paddle import Paddle
-from population import Population
+
+Settings.PATIENCE = 15
+Settings.DIFF_THRESHOLD = 12
+Settings.WEIGHT_DIFFERENCE_PENALTY = 1
 
 rng = Random()
 population = Population(settings.POPULATION_SIZE, 6, 2)
 
+
 class Game:
     def __init__(self):
         pg.init()
+        pg.font.init()
+        self.font = pg.font.SysFont('Consolas', 30)
         self.screen = pg.display.set_mode(settings.SCREEN_SIZE)
         self.clock = pg.time.Clock()
         self.is_running = False
@@ -39,11 +49,19 @@ class Game:
                 exit()
 
     def run(self, pop: Population):
-        print(len(pop.species))
+        nn_g = pg.sprite.GroupSingle()
+        print('num species: ' + str(len(pop.species)))
+        caption = 'Generation: ' + str(pop.gen)
+
+        if pop.best is not None:
+            NeuralNetwork(pop.best.brain, (500, 250), (500, 250), groups=[nn_g])
+            caption += ' - Best fitness: ' + str(int(pop.best.fitness))
+        text_surface = self.font.render(caption, True, 'white')
+        pg.display.set_caption(caption)
         self.is_running = True
         while self.is_running:
-            pg.display.set_caption('Generation: ' + str(pop.gen))
             delta_t = self.clock.tick(settings.FRAME_RATE)
+
             self.screen.fill('black')
             self.manage_events()
             for i, a in enumerate(pop.agents):
@@ -69,23 +87,37 @@ class Game:
             self.paddles_g.update(delta_t)
             self.paddles_g.draw(self.screen)
 
+            nn_g.draw(self.screen)
+
+            self.screen.blit(text_surface, (0, 0))
+
             pg.display.update()
             if len(self.balls_g.sprites()) == 0:
                 self.is_running = False
 
+        max_f = 0
+        max_b = 0
         for i, b in enumerate(self.balls):
+            if b.count_bounce > max_b:
+                max_b = b.count_bounce
             #pop.agents[i].fitness = 2**(b.count_bounce + .00001)
             pop.agents[i].fitness = 2 ** (b.count_bounce + .00001)
-            if b.distance < settings.PADDLE_SIZE:
-                #pop.agents[i].fitness *= 2
-                pop.agents[i].fitness += 1
+            if b.distance < settings.SCREEN_SIZE[1]:
+                prop = 1 - (b.distance / settings.SCREEN_SIZE[1])
+                pop.agents[i].fitness *= 1 + (2 * prop)
+                #pop.agents[i].fitness += 1
+            if pop.agents[i].fitness > max_f:
+                max_f = pop.agents[i].fitness
 
-        #pg.quit()
 
 
 def fitness(pop:Population):
     game = Game()
     game.run(pop)
 
+
 if __name__ == '__main__':
+    pg.init()
+    pg.display.set_mode(settings.SCREEN_SIZE)
+    input()
     population.evolve(fitness)
