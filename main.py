@@ -34,7 +34,7 @@ class Game:
     def fill_players(self):
         self.balls = []
         self.paddles = []
-        for i in range(settings.POPULATION_SIZE):
+        for _ in range(settings.POPULATION_SIZE):
             color = (rng.randint(0, 255), rng.randint(0, 255), rng.randint(0, 255))
             p = Paddle((10, settings.SCREEN_SIZE[1] // 2), color=color, groups=[self.paddles_g])
             b = Ball((settings.SCREEN_SIZE[0] // 2, settings.SCREEN_SIZE[1] // 2), p,
@@ -100,12 +100,10 @@ class Game:
         for i, b in enumerate(self.balls):
             if b.count_bounce > max_b:
                 max_b = b.count_bounce
-            #pop.agents[i].fitness = 2**(b.count_bounce + .00001)
             pop.agents[i].fitness = 2 ** (b.count_bounce + .00001)
             if b.distance < settings.SCREEN_SIZE[1]:
                 prop = 1 - (b.distance / settings.SCREEN_SIZE[1])
                 pop.agents[i].fitness *= 1 + (2 * prop)
-                #pop.agents[i].fitness += 1
             if pop.agents[i].fitness > max_f:
                 max_f = pop.agents[i].fitness
 

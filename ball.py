@@ -1,6 +1,6 @@
 import math
 import random
-from typing import List
+from typing import List, Tuple
 
 import pygame as pg
 from pygame.sprite import Group
@@ -10,28 +10,30 @@ from paddle import Paddle
 
 rng = random.Random()
 
+
 class Ball(pg.sprite.Sprite):
 
-    def __init__(self, pos: tuple, paddle: Paddle, direction=pg.Vector2(1, 0), color: tuple = (255, 255, 255), groups: List[Group] = []) -> None:
+    def __init__(self, pos: Tuple[int, int], paddle: Paddle, direction=pg.Vector2(1, 0), color: tuple = (255, 255, 255),
+                 groups: List[Group] = []) -> None:
         super().__init__(groups)
-        self.diameter = 10
-        self.paddle = paddle
-        self.radius = self.diameter // 2
-        self.color = color
-        self.image = self.create_ball_surface()
-        self.rect = self.image.get_rect(center=pos)
-        self.direction = direction
-        self.speed = 6
-        self.is_dead = False
-        self.count_bounce = 0
-        self.distance = 0
+        self.diameter: int = 10
+        self.paddle: Paddle = paddle
+        self.radius: int = self.diameter // 2
+        self.color: Tuple[int, int] = color
+        self.image: pg.Surface = self.create_ball_surface()
+        self.rect: pg.Rect = self.image.get_rect(center=pos)
+        self.direction: pg.Vector2 = direction
+        self.speed: int = 6
+        self.is_dead: bool = False
+        self.count_bounce: int = 0
+        self.distance: int = 0
 
-    def create_ball_surface(self):
-        surface = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
+    def create_ball_surface(self) -> pg.Surface:
+        surface: pg.Surface = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)
         pg.draw.circle(surface, self.color, (self.radius, self.radius), self.radius)
         return surface
 
-    def update(self, delta_t: float):
+    def update(self, delta_t: float) -> None:
         self.rect.center += self.direction.normalize() * self.speed
 
         if self.rect.right > settings.SCREEN_SIZE[0]:
@@ -48,8 +50,8 @@ class Ball(pg.sprite.Sprite):
             self.rect.bottom = settings.SCREEN_SIZE[1]
 
         if self.rect.colliderect(self.paddle.rect):
-            delta = self.rect.centery - self.paddle.rect.top - (settings.PADDLE_SIZE / 2)
-            prop = delta / settings.PADDLE_SIZE
+            delta: float = self.rect.centery - self.paddle.rect.top - (settings.PADDLE_SIZE / 2)
+            prop: float = delta / settings.PADDLE_SIZE
             self.direction.x = -self.direction.x
             self.direction.y = -prop
             self.rect.left = self.paddle.rect.right
@@ -59,7 +61,6 @@ class Ball(pg.sprite.Sprite):
             self.is_dead = True
             self.paddle.kill()
             self.distance = math.fabs(self.rect.centery - self.paddle.rect.centerx)
-            #print(self.count_bounce, self.distance)
             self.kill()
 
         if self.direction.magnitude() > 0:
