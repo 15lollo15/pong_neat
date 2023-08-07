@@ -10,12 +10,15 @@ from neural_network import NeuralNetwork
 from paddle import Paddle
 
 Settings.PATIENCE = 15
-Settings.DIFF_THRESHOLD = 12
+Settings.DIFF_THRESHOLD = 3
 Settings.WEIGHT_DIFFERENCE_PENALTY = 1
 
 rng = Random()
 population = Population(settings.POPULATION_SIZE, 6, 2)
 
+
+frame_rate = 0
+only_best = False
 
 class Game:
     def __init__(self):
@@ -30,25 +33,39 @@ class Game:
         self.balls = []
         self.paddles = []
         self.fill_players()
+        self.frame_rate = 0
+        self.only_best = False
 
     def fill_players(self):
         self.balls = []
         self.paddles = []
-        for _ in range(settings.POPULATION_SIZE):
+        for i in range(settings.POPULATION_SIZE):
             color = (rng.randint(0, 255), rng.randint(0, 255), rng.randint(0, 255))
-            p = Paddle((10, settings.SCREEN_SIZE[1] // 2), color=color, groups=[self.paddles_g])
-            b = Ball((settings.SCREEN_SIZE[0] // 2, settings.SCREEN_SIZE[1] // 2), p,
+            p = Paddle(i, (10, settings.SCREEN_SIZE[1] // 2), color=color, groups=[self.paddles_g])
+            b = Ball(i, (settings.SCREEN_SIZE[0] // 2, settings.SCREEN_SIZE[1] // 2), p,
                      pg.Vector2(rng.random(), rng.random()), color=color, groups=[self.balls_g])
             self.balls.append(b)
             self.paddles.append(p)
 
     def manage_events(self):
+        global frame_rate
+        global only_best
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.is_running = False
                 exit()
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_0:
+                    frame_rate = 0
+                if event.key == pg.K_n:
+                    frame_rate = 120
+                if event.key == pg.K_b:
+                    only_best = True
+                if event.key == pg.K_a:
+                    only_best = False
 
     def run(self, pop: Population):
+        global only_best, frame_rate
         nn_g = pg.sprite.GroupSingle()
         print('num species: ' + str(len(pop.species)))
         caption = 'Generation: ' + str(pop.gen)
@@ -59,8 +76,15 @@ class Game:
         text_surface = self.font.render(caption, True, 'white')
         pg.display.set_caption(caption)
         self.is_running = True
+
+        best_index = 0
+        for i, a in enumerate(pop.agents):
+            if pop.best is not None and a.fitness == pop.best.fitness:
+                best_index = i
+                break
+
         while self.is_running:
-            delta_t = self.clock.tick(settings.FRAME_RATE)
+            delta_t = self.clock.tick(frame_rate)
 
             self.screen.fill('black')
             self.manage_events()
@@ -82,10 +106,18 @@ class Game:
                     paddle.stay()
 
             self.balls_g.update(delta_t)
-            self.balls_g.draw(self.screen)
+            #self.balls_g.draw(self.screen)
+
+            for ball in self.balls_g.sprites():
+                if ball.index == best_index or not only_best:
+                    self.screen.blit(ball.image, ball.rect)
 
             self.paddles_g.update(delta_t)
-            self.paddles_g.draw(self.screen)
+            #self.paddles_g.draw(self.screen)
+
+            for paddle in self.paddles_g.sprites():
+                if paddle.index == best_index or not only_best:
+                    self.screen.blit(paddle.image, paddle.rect)
 
             nn_g.draw(self.screen)
 
@@ -104,6 +136,7 @@ class Game:
             if b.distance < settings.SCREEN_SIZE[1]:
                 prop = 1 - (b.distance / settings.SCREEN_SIZE[1])
                 pop.agents[i].fitness *= 1 + (2 * prop)
+            pop.agents[i].fitness /= pop.agents[i].brain.calculate_weight()
             if pop.agents[i].fitness > max_f:
                 max_f = pop.agents[i].fitness
 

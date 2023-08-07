@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "432e26d48d79a80217cbd3b1ce9330066716df4c4d5f5ea6dd85025b8a3fa780"
+            "sha256": "5ef782c944305cb2fb939ef3d0f2d78bff9691f96eacc286635bbab884284b02"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -17,6 +17,14 @@
         ]
     },
     "default": {
+        "neat-py-lollo": {
+            "hashes": [
+                "sha256:2c5df40f04e705804d9ff4cd6208403bc3808f2cc4a91ad178e0b7069aa8eab4",
+                "sha256:bc4d13e19ed0c55e0a0cb321da970e55d307d28bdc3b9c815cf69d88dc8a79cb"
+            ],
+            "index": "pypi",
+            "version": "==0.0.3"
+        },
         "pygame": {
             "hashes": [
                 "sha256:13b650e925d2e8c82c16bdeae6e7fc5d6ca4ac659a1412da4ecd923ef9d688cb",

@@ -13,7 +13,7 @@ rng = random.Random()
 
 class Ball(pg.sprite.Sprite):
 
-    def __init__(self, pos: Tuple[int, int], paddle: Paddle, direction=pg.Vector2(1, 0), color: tuple = (255, 255, 255),
+    def __init__(self, index: int, pos: Tuple[int, int], paddle: Paddle, direction=pg.Vector2(1, 0), color: tuple = (255, 255, 255),
                  groups: List[Group] = []) -> None:
         super().__init__(groups)
         self.diameter: int = 10
@@ -27,6 +27,7 @@ class Ball(pg.sprite.Sprite):
         self.is_dead: bool = False
         self.count_bounce: int = 0
         self.distance: int = 0
+        self.index = index
 
     def create_ball_surface(self) -> pg.Surface:
         surface: pg.Surface = pg.Surface((self.diameter, self.diameter), pg.SRCALPHA)

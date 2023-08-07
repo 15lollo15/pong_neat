@@ -6,7 +6,7 @@ import settings
 
 
 class Paddle(pg.sprite.Sprite):
-    def __init__(self, pos: Tuple[int, int], color: Tuple[int, int, int] = (255, 255, 255),
+    def __init__(self, index: int, pos: Tuple[int, int], color: Tuple[int, int, int] = (255, 255, 255),
                  groups: List[Group] = []) -> None:
         super().__init__(groups)
         self.pos: Tuple[int, int] = pos
@@ -16,7 +16,8 @@ class Paddle(pg.sprite.Sprite):
         self.rect: pg.Rect = self.image.get_rect(center=pos)
         self.is_dead: bool = False
         self.direction: int = 0
-        self.speed: int = 4
+        self.speed: int = 3
+        self.index = index
 
     def build_paddle(self) -> pg.Surface:
         surface = pg.Surface((10, self.height), pg.SRCALPHA)
